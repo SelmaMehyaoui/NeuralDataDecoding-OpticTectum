@@ -1,5 +1,5 @@
 %% ===================Optic Tectum : Orientation decoding ============== %%
-function [Linear_Decoder_Error, Mean4_Decoder_Error,Linear_Decoder2_Error, Mean4_Decoder2_Error, Pop_Vector_Error,Template_Matching_Error,ZS_Template_Matching_Error,ML_Error]=Decoding_DS_nc_nt(id_cells, id_train, id_test, ifplots,whatdecoder,saves_struct_number)
+function [Linear_Decoder_Error, Linear_Decoder_Precision, Match_Decoder_Error,Precision4_Decoder_Error,Precision_Decoder_Error,Match4_Decoder_Error,Linear_Decoder2_Error, Mean4_Decoder2_Error, Pop_Vector_Error,Template_Matching_Error,ZS_Template_Matching_Error,ML_Error]=Decoding_DS_nc_nt(id_cells, id_train, id_test, ifplots,whatdecoder,saves_struct_number,tol1,tol2)
 % Moving bars. Four cardinal directions
 
 % id cells, id train, id tests are binary vectors
@@ -21,15 +21,25 @@ function [Linear_Decoder_Error, Mean4_Decoder_Error,Linear_Decoder2_Error, Mean4
 % d'erreur est renvoy? en sortie de la fonction
 
 % clear all;
-
-close all; 
+% 
+% close all; 
 mypath='/Users/selmamehyaoui/Desktop/Optic Tectum Data/Donnees John/';
 load([mypath,'141024_GCaMP5G_7dpf_LongStim_F1/Results/141024_GCaMP5G_7dpf_LongStim_F1_RESULTS_Selma.mat']);
 
+%% ================== Set default output to zero ======================= %%
+
+Linear_Decoder_Error=0;
+Match4_Decoder_Error=0;
+Linear_Decoder2_Error=0;
+Mean4_Decoder2_Error=0;
+Pop_Vector_Error=0;
+Template_Matching_Error=0;
+ZS_Template_Matching_Error=0;
+ML_Error=0;
 
 %% ================== Defining variables =============================== %%
 n_trial=1;
-n_cells_tot=size(Fish{1,1}.RFdeltaFoF{n_trial},1);
+n_cells_tot=size(Fish{1,1}.RFdeltaFoF{n_trial},1)
 n_cells=sum(id_cells);
 
 n_stim=4; %nb de repetitions d'un stimulus donn??
@@ -52,6 +62,8 @@ DS_DeltaFoFtotaltrain=zeros(n_cells,4);
 
 for j=1:N_orientations
 
+size(id_cells)
+size((1:n_cells_tot))
 myneworder=id_cells.*(1:n_cells_tot);
 myneworder(myneworder==0)=[];
 
@@ -101,25 +113,63 @@ A(:,id_test==0)=[];
 %idtrain idtest
 % 4 repetitions de chacun des 4 stimuli soit 16 trials au total
 my_stim=[ones(1,4),2*ones(1,4),3*ones(1,4),4*ones(1,4)];
-my_stim=my_stim.*id_test;
+my_stim_train=my_stim.*id_train;
+my_stim_train(my_stim_train==0)=[];
+my_stim=my_stim.*id_test
 my_stim(my_stim==0)=[];
+
+cos_stim_train=round(cos(pi/2-(my_stim_train-1)*pi/2));
+sin_stim_train=round(sin(pi/2-(my_stim_train-1)*pi/2));
+cos_2stim_train=round(cos(pi/2-(my_stim_train-1)*pi/2));
+sin_2stim_train=round(sin(pi/2-(my_stim_train-1)*pi/2));
+cossincos2sin2_train=[cos_stim_train;sin_stim_train;cos_2stim_train;sin_2stim_train];
 
 cos_stim=round(cos(pi/2-(my_stim-1)*pi/2));
 sin_stim=round(sin(pi/2-(my_stim-1)*pi/2));
 cos_2stim=round(cos(pi/2-(my_stim-1)*pi/2));
 sin_2stim=round(sin(pi/2-(my_stim-1)*pi/2));
+cossincos2sin2_stim=[cos_stim;sin_stim;cos_2stim;sin_2stim]
 
 
-%% ======================= Decodeur lin?aire ============================%%
+%% ======================= Decodeur lineaire ============================%%
 
 % whatdecoder(1) decodeur lineaire (via Moore Penrose pseudo-inverse)
 
-%W=mystim*pinv(rtrain);
+if whatdecoder(1)
+W=my_stim_train*pinv(DS_DeltaFoF_train,tol1);
+Decoded_linear=W*A;
 
+Linear_Decoder_Error=sum(1-round(Decoded_linear)==my_stim)/n_test*100;
+Linear_Decoder_Precision=sum((Decoded_linear-my_stim).^2)/n_test;
+end
 
 %% ============= Decodeur lin?aire en cos sin cos2 sin2==================%%
 
 % whatdecoder(2) decodeur lineaire
+if whatdecoder(2)
+myinv=pinv(DS_DeltaFoF_train,tol2);
+W4=cossincos2sin2_train*myinv;
+Decoded_linear4=W4*A;
+Decoded_linear4=Decoded_linear4./max(max(Decoded_linear4));
+for j=1:n_test
+f = @(x) norm([cos(x);sin(x);cos(2*x);sin(2*x)]-Decoded_linear4(:,j))^2;
+options = optimoptions('fminunc','Algorithm','quasi-newton');
+x0=acos(Decoded_linear4(1,j));
+[x(j), fval, exitflag, output] = fminunc(f,x0,options);
+end
+
+Precision_Decoder_Error=(2*(1-x/pi)-my_stim).^2
+Match_Decoder_Error=1-(round(2*(1-x/pi))==my_stim);
+
+Precision4_Decoder_Error=sum((Decoded_linear4-cossincos2sin2_stim).^2);
+Match4_Decoder_Error=(sum(Decoded_linear4==cossincos2sin2_stim)<size(Decoded_linear4,1));
+
+Match_Decoder_Error=sum(Match_Decoder_Error)/n_test*100;
+Precision4_Decoder_Error=sum(Precision4_Decoder_Error)/n_test;
+Precision_Decoder_Error=sum(Precision_Decoder_Error)/n_test;
+Match4_Decoder_Error=sum(Match4_Decoder_Error)/n_test*100; 
+
+end
 
 %% ======================= Decodeur lin?aire2 ===========================%%
 

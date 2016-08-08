@@ -3,9 +3,14 @@ clc
 
 %% SCRIPT FOR PLOTTING DECODERS PERFORMANCES FOR DIRECTION SELECTIVITY
 
-
 MyLinear_Decoder_error=zeros(312,10);
-MyLinear4_Decoder_error=zeros(312,10);
+MyLinear_Decoder_precision=zeros(312,10);
+MyMatch_Decoder_error=zeros(312,10);
+MyPrecision4_Decoder_error=zeros(312,10);
+MyPrecision_Decoder_error=zeros(312,10);
+MyMatch4_Decoder_error=zeros(312,10);
+MyLinear_Decoder2_error=zeros(312,10);
+MyMean4_Decoder2_error=zeros(312,10);
 Mypopvector_error=zeros(312,10);
 MyTM_error=zeros(312,10);
 MyNTM_error=zeros(312,10);
@@ -29,21 +34,20 @@ id_cells=id_cells(randperm(312));
 
 saves_struct_number=0;
 %saves_struct_number=l;
-[A1,A2,A3,A4,A5,A6]=Decoding_DS_nc_nt(id_cells, id_train', id_test', ifplots,whatdecoder,saves_struct_number);
-MyLinear_Decoder_error(n_cells,k)=A1+MyLinear_Decoder_error(n_cells,k);
-MyLinear4_Decoder_error(n_cells,k)=A2+MyLinear4_Decoder_error(n_cells,k);
-Mypopvector_error(n_cells,k)=A3+Mypopvector_error(n_cells,k);
-MyTM_error(n_cells,k)=A4+MyTM_error(n_cells,k);
-MyNTM_error(n_cells,k)=A5+MyNTM_error(n_cells,k);
-MyBML_error(n_cells,k)=A6+MyBML_error(n_cells,k);
+[A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12]=Decoding_DS_nc_nt(id_cells, id_train', id_test', ifplots,whatdecoder,saves_struct_number);
+MyLinear_Decoder_error(n_cells,k)=A1/10+MyLinear_Decoder_error(n_cells,k);
+MyLinear_Decoder_precision(n_cells,k)=A2/10+MyLinear_Decoder_precison(n_cells,k);
+MyMatch_Decoder_error(n_cells,k)=A3/10+MyMatch_Decoder_error(n_cells,k);
+MyPrecision4_Decoder_error(n_cells,k)=A4/10+MyPrecision4_Decoder_error(n_cells,k);
+MyPrecision_Decoder_error(n_cells,k)=A5/10+MyPrecision_Decoder_error(n_cells,k);
+MyMatch4_Decoder_error(n_cells,k)=A6/10+MyMatch4_Decoder_error(n_cells,k);
+MyLinear_Decoder2_error(n_cells,k)=A7/10+MyLinear_Decoder2_error(n_cells,k);
+MyMean4_Decoder2_error(n_cells,k)=A8/10+MyMean4_Decoder2_error(N_cells,k);
+Mypopvector_error(n_cells,k)=A9/10+Mypopvector_error(n_cells,k);
+MyTM_error(n_cells,k)=A10/10+MyTM_error(n_cells,k);
+MyNTM_error(n_cells,k)=A11/10+MyNTM_error(n_cells,k);
+MyBML_error(n_cells,k)=A12/10+MyBML_error(n_cells,k);
 end
-MyLinear_Decoder_error(n_cells,k)=MyLinear_Decoder_error(n_cells,k)/10;
-MyLinear4_Decoder_error(n_cells,k)=MyLinear4_Decoder_error(n_cells,k)/10;
-Mypopvector_error(n_cells,k)=Mypopvector_error(n_cells,k)/10;
-MyTM_error(n_cells,k)=MyTM_error(n_cells,k)/10;
-MyNTM_error(n_cells,k)=MyNTM_error(n_cells,k)/10;
-MyBML_error(n_cells,k)=MyBML_error(n_cells,k)/10;
-
 end
 
 end
